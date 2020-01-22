@@ -4,22 +4,30 @@ import numpy as np
 import decay_constraints_functions_master as functions
 ############################################################################################################
 ## RADIAL CONSTANTS FOR DECAY RATE CALCULATION
-n=[0,0,0,0,0]
-l = [1,2,3,4,5]
-m = [1,2,3,4,5]
+
+
+
+
+
+n=np.array([0,0,0,1,1]) # Overtone modes, corrected to include maximal spin down rates for analytical solutions. There is a transition at n > 3 where the nodeless mode (n=0) is not maximal anymore.
+l = np.array([1,2,3,4,5]) # Orbial multipole numbers
+m = l.copy() # Azimutial quantum numbers, rates are always maximised when l=m
+
 # DM: what is n2?
-n2=[2,3,4,5,6]
+n2 = n + m + 1   #MS: n2 is the principle quantum number n2 = n+l+1
 B = functions.radial_constants(m,l,n)
 
-accuracy = 200 # number of points in BH mass and spin directions
-range_length = 5 # Accuracy of axion parameter space
+accuracy = 100 # number of points in BH mass and spin directions
+range_length =100 # Accuracy of axion parameter space
 
 ## DEFINE BLACK HOLE PARAMETER SPACE FOR ACCURACY OF EXCLUSION CONTOURS
 a,mm,X,Y = functions.black_hole_parameter_space(accuracy)
 
 ## DEFINE PARAMETER SPACE TO SCAN OVER
 # DM: exclusion_limit2 sets the limit for a fixed timescale given the axion mass. Seems weird?
-f_ax, m_ax,exclusion_limit2, aa = functions.axion_parameter_space(range_length,13.,20.,-14.,-9.)
+# MS: Representative of the proportionalty relationship for the superradiance rates i.e. Eq. 12 onwards in https://arxiv.org/pdf/1704.05081.pdf
+
+f_ax, m_ax,isocontour_values = functions.axion_parameter_space(range_length,14.,20.,-13.3,-11.5)
 
 
 ## READ IN BLACK HOLE DATA
@@ -28,6 +36,10 @@ b_masses = np.append(sl_masses,sm_masses)
 b_spins = np.append(sl_spins,sm_spins)
 b_mass_error = np.append(sl_mass_error,sm_mass_error)
 b_spin_error = np.append(sl_spin_error,sm_spin_error)
+
+print(b_spin_error)
+
+
 ############################################################################################################
 
 ## BLACK HOLE SECTION INDEX
@@ -69,8 +81,9 @@ xtem,ytem,dytem,dxtem = functions.black_hole_selection(bhind,b_masses,b_spins,b_
 	
 #	f_a=[f_ax[ii]]
 
-f_a=[1.e20]
+f_a=[1.e14]
 	# DM: something in here takes a long time: up to ~20 s per evaluation of an (m,f) point.
-total_exclusion = functions.exclusion_function(m_ax, f_a, X, Y, B,n2,l,m,exclusion_limit2,xtem,ytem,dytem,dxtem,plots=True,verbose=True)
-	#np.save('results_data/LMCX-1_exclusion'+str(index),total_exclusion)		
+total_exclusion = functions.exclusion_function(m_ax, f_ax, X, Y, B,n2,l,m,isocontour_values,xtem,ytem,dytem,dxtem,plots=False,verbose=False)
+print(total_exclusion)
+np.save('results_data/LMCX-1_exclusion.npy',total_exclusion)
 
